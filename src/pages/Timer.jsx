@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Pause, Play, RotateCcw, Check, Minus, Plus } from 'lucide-react'
+import { Pause, Play, RotateCcw, Check, Minus, Plus, Moon } from 'lucide-react'
 import { useTimer } from '../hooks/useTimer'
 import { useAudio } from '../hooks/useAudio'
 import { useProjectStore } from '../store/useProjectStore'
 import RecordModal from '../components/RecordModal'
 import HeatRing from '../components/HeatRing'
+import ClockScreen from '../components/ClockScreen'
 import SoundPanel from '../components/SoundPanel'
 import { asset, formatClock } from '../lib/utils'
 
 const ARTWORK = [
-  { src: 'lockscreen_artwork.png', sizes: '1024x1024', type: 'image/png' },
+  { src: 'lockscreen_artwork.png', sizes: '512x512', type: 'image/png' },
   { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
   { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
 ].map((a) => ({ ...a, src: asset(a.src) }))
@@ -22,6 +23,7 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
 
   const [selectedId, setSelectedId] = useState(activeProjectId || preselectedProjectId || '')
   const [showRecord, setShowRecord] = useState(false)
+  const [showClock, setShowClock] = useState(false)
   const [mode, setMode] = useState('countdown') // countdown | countup
   const [targetMinutes, setTargetMinutes] = useState(25)
 
@@ -42,6 +44,7 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
     }
     setSilenceActive(false)
     pause()
+    setShowClock(false)
     setShowRecord(true)
   }
 
@@ -239,6 +242,17 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
         </div>
       </section>
 
+      <div className="flex-shrink-0 flex justify-center -mt-1">
+        <button
+          type="button"
+          onClick={() => setShowClock(true)}
+          className="h-9 px-4 rounded-md text-sm font-bold text-steel flex items-center gap-1.5 active:text-iron active:bg-stone-deep"
+        >
+          <Moon size={16} />
+          熄屏时钟
+        </button>
+      </div>
+
       <div className="flex-shrink-0 flex items-center justify-center gap-6 py-4">
         <button
           type="button"
@@ -276,6 +290,20 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
       <div className="flex-shrink-0">
         <SoundPanel audio={audio} onSelect={handleSelectSound} onToggle={handleToggleSound} />
       </div>
+
+      {showClock && (
+        <ClockScreen
+          project={project}
+          display={display}
+          modeLabel={mode === 'countdown' ? '剩余' : '已锻造'}
+          progress={ringProgress}
+          running={running}
+          soundTitle={soundTitle}
+          isPlaying={isPlaying}
+          onToggle={handleStartPause}
+          onClose={() => setShowClock(false)}
+        />
+      )}
 
       {showRecord && project && (
         <RecordModal
