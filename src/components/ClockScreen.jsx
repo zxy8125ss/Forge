@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pause, Play, X } from 'lucide-react'
 import { formatClock } from '../lib/utils'
+import AnalogClock from './AnalogClock'
 
 const WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 const pad = (n) => n.toString().padStart(2, '0')
@@ -13,6 +14,15 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
   const [awake, setAwake] = useState(true)
   const [shift, setShift] = useState({ x: 0, y: 0 })
   const sleepTimer = useRef(null)
+  const [landscape, setLandscape] = useState(() => window.matchMedia('(orientation: landscape)').matches)
+
+  // 横竖屏切换
+  useEffect(() => {
+    const mq = window.matchMedia('(orientation: landscape)')
+    const onChange = () => setLandscape(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   const wake = () => {
     setAwake(true)
@@ -54,6 +64,52 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
 
   const color = project?.color || '#e5501b'
   const dim = awake ? 'opacity-100' : 'opacity-55'
+
+  const stop = (fn) => (e) => {
+    e.stopPropagation()
+    fn()
+    wake()
+  }
+  const controls = awake ? 'opacity-100' : 'opacity-0 pointer-events-none'
+
+  // 横屏：指针表盘，不显示数字
+  if (landscape) {
+    return (
+      <div
+        className="fixed inset-0 z-50 bg-black select-none animate-fade-in flex items-center justify-center pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
+        onClick={wake}
+      >
+        <div
+          className={`h-[92svh] aspect-square transition-[transform,opacity] duration-1000 ${dim}`}
+          style={{ transform: `translate(${shift.x}px, ${Math.round(shift.y / 3)}px)` }}
+        >
+          <AnalogClock now={now} progress={progress} running={running} color={color} className="w-full h-full" />
+        </div>
+
+        <div className={`absolute left-[calc(env(safe-area-inset-left)+28px)] bottom-7 transition-opacity duration-1000 ${awake ? 'opacity-100' : 'opacity-50'}`}>
+          <div className="text-base font-bold text-[#8a8a8a]">{project ? `${project.icon} ${project.name}` : ''}</div>
+          <div className="text-[13px] text-[#555] mt-0.5">{running ? (isPlaying ? `♪ ${soundTitle}` : '专注中') : '已暂停'}</div>
+        </div>
+
+        <button
+          type="button"
+          onClick={stop(onClose)}
+          aria-label="退出熄屏时钟"
+          className={`absolute top-4 right-[calc(env(safe-area-inset-right)+16px)] w-11 h-11 flex items-center justify-center text-[#9a9a9a] transition-opacity duration-500 ${controls}`}
+        >
+          <X size={26} />
+        </button>
+        <button
+          type="button"
+          onClick={stop(onToggle)}
+          aria-label={running ? '暂停' : '继续'}
+          className={`absolute bottom-6 right-[calc(env(safe-area-inset-right)+24px)] w-[68px] h-[68px] rounded-full border-2 border-[#444] text-[#c8c8c8] flex items-center justify-center transition-opacity duration-500 ${controls}`}
+        >
+          {running ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div
