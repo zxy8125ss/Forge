@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useProjectStore } from '../store/useProjectStore'
 import { moodEmoji } from '../data/moods'
 
@@ -8,25 +8,37 @@ const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周�
 function dayLabel(ts) {
   const d = new Date(ts)
   const today = new Date()
-  const yesterday = new Date()
-  yesterday.setDate(today.getDate() - 1)
+  const y = new Date()
+  y.setDate(today.getDate() - 1)
   if (d.toDateString() === today.toDateString()) return '今天'
-  if (d.toDateString() === yesterday.toDateString()) return '昨天'
+  if (d.toDateString() === y.toDateString()) return '昨天'
   return `${d.getMonth() + 1}月${d.getDate()}日 ${WEEK[d.getDay()]}`
 }
 
-function durationParts(sec) {
+// 时长：大于 1 小时显示 1:05，否则显示分钟数
+function Duration({ sec }) {
   const h = Math.floor(sec / 3600)
   const m = Math.floor((sec % 3600) / 60)
-  const s = sec % 60
-  if (h > 0) return m > 0 ? [[h, '小时'], [m, '分']] : [[h, '小时']]
-  if (m > 0) return s > 0 ? [[m, '分'], [s, '秒']] : [[m, '分钟']]
-  return [[sec, '秒']]
+  if (h > 0)
+    return (
+      <>
+        <span className="num text-[34px] leading-none">
+          {h}:{pad(m)}
+        </span>
+        <span className="text-[13px] font-bold text-mute ml-1">时</span>
+      </>
+    )
+  return (
+    <>
+      <span className="num text-[34px] leading-none">{Math.max(1, m)}</span>
+      <span className="text-[13px] font-bold text-mute ml-1">分</span>
+    </>
+  )
 }
 
-// 按天分组的锻造记录
 export default function Feed() {
   const { records, projects, deleteRecord } = useProjectStore()
+  const [open, setOpen] = useState(null)
 
   const groups = []
   records.forEach((r) => {
@@ -42,76 +54,55 @@ export default function Feed() {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden w-full max-w-md mx-auto">
-      <header className="flex-shrink-0 px-5 pt-5 pb-4 border-b-2 border-iron">
-        <h1 className="text-[28px] leading-none font-black tracking-tight">历程</h1>
-        <p className="text-[13px] text-steel mt-1.5">每一次专注都留在这里</p>
+    <div className="flex-1 overflow-y-auto no-scrollbar w-full max-w-md mx-auto">
+      <header className="px-6 pt-8 pb-2">
+        <h1 className="text-[34px] font-black leading-none">历程</h1>
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8">
-        {records.length === 0 ? (
-          <div className="pt-10">
-            <p className="text-2xl font-black leading-snug">还没有记录。</p>
-            <p className="text-[15px] text-steel mt-3 leading-relaxed">在「专注」里完成一次计时并保存，就会出现在这里。</p>
-          </div>
-        ) : (
-          groups.map((g) => (
-            <section key={g.key} className="pt-5">
-              <div className="flex items-baseline justify-between mb-3">
-                <h2 className="text-base font-black">{dayLabel(g.ts)}</h2>
-                <span className="text-[13px] text-steel">
-                  共 <span className="num text-base font-bold text-iron">{Math.round(g.total / 60)}</span> 分钟
-                </span>
-              </div>
-              <ul className="space-y-3">
-                {g.items.map((r) => {
-                  const p = projects.find((x) => x.id === r.projectId)
-                  if (!p) return null
-                  const d = new Date(r.startAt)
-                  return (
-                    <li key={r.id} className="relative bg-plate border-2 border-iron/15 rounded-md overflow-hidden">
-                      <span className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: p.color }} aria-hidden />
-                      <div className="pl-5 pr-3 py-3.5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="text-[15px] font-bold truncate">
-                              {p.icon} {p.name}
-                            </div>
-                            <div className="text-[13px] text-steel mt-0.5">
-                              <span className="num text-sm">
-                                {pad(d.getHours())}:{pad(d.getMinutes())}
-                              </span>{' '}
-                              开始 · {moodEmoji(r.mood)} {r.mood}
-                            </div>
-                          </div>
-                          <div className="flex items-baseline gap-0.5 flex-shrink-0">
-                            {durationParts(r.duration).map(([v, u]) => (
-                              <span key={u}>
-                                <span className="num text-[30px] leading-none font-extrabold">{v}</span>
-                                <span className="text-[13px] font-bold mr-1">{u}</span>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex items-end justify-between gap-3 mt-2.5">
-                          <p className="text-[15px] leading-relaxed">{r.note}</p>
-                          <button
-                            onClick={() => handleDelete(r.id)}
-                            aria-label="删除记录"
-                            className="w-9 h-9 -mr-1 -mb-1 flex-shrink-0 flex items-center justify-center text-steel/70 active:text-ember-deep"
-                          >
-                            <Trash2 size={17} />
-                          </button>
-                        </div>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
-          ))
-        )}
-      </div>
+      {records.length === 0 ? (
+        <p className="px-6 pt-6 text-base text-mute leading-relaxed">完成一次专注并保存后，会出现在这里。</p>
+      ) : (
+        groups.map((g) => (
+          <section key={g.key} className="pt-7">
+            <div className="flex items-baseline justify-between px-6 pb-2">
+              <h2 className="text-base font-black">{dayLabel(g.ts)}</h2>
+              <span className="text-sm text-mute">
+                共 <span className="font-bold text-ink">{Math.round(g.total / 60)}</span> 分钟
+              </span>
+            </div>
+            {g.items.map((r) => {
+              const p = projects.find((x) => x.id === r.projectId)
+              if (!p) return null
+              const d = new Date(r.startAt)
+              const expanded = open === r.id
+              return (
+                <div key={r.id} className="border-t border-line">
+                  <button onClick={() => setOpen(expanded ? null : r.id)} className="w-full flex items-start justify-between gap-4 px-6 py-4 text-left">
+                    <div className="min-w-0">
+                      <div className="text-[17px] font-black truncate">{p.name}</div>
+                      <p className="text-[15px] leading-relaxed mt-1">{r.note}</p>
+                      <p className="text-[13px] text-mute mt-1">
+                        {pad(d.getHours())}:{pad(d.getMinutes())} · {moodEmoji(r.mood)} {r.mood}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0 pt-0.5">
+                      <Duration sec={r.duration} />
+                    </div>
+                  </button>
+                  {expanded && (
+                    <div className="px-6 pb-4 -mt-1">
+                      <button onClick={() => handleDelete(r.id)} className="h-9 px-4 rounded-full bg-line text-sm font-bold text-ember">
+                        删除这条记录
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </section>
+        ))
+      )}
+      <div className="h-8" />
     </div>
   )
 }

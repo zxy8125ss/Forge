@@ -22,4 +22,4 @@ export const CLASSICAL_TRACKS = [
 ]
 
 // 选择器里的"古典乐随机连播"
-export const CLASSICAL_SHUFFLE = { id: 'classical-shuffle', title: '古典乐 · 随机连播' }
+export const CLASSICAL_SHUFFLE = { id: 'classical-shuffle', title: '古典乐随机连播' }

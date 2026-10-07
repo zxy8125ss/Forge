@@ -2,29 +2,24 @@
 @import '@fontsource/barlow-condensed/latin-600.css';
 @import '@fontsource/barlow-condensed/latin-800.css';
 
-/* 锻铁工坊：石灰底、铸铁块面、熔铁橙、黄铜里程碑 */
+/* 极简：米白纸面 + 墨黑大字，炉火橙只在"正在燃烧"的地方出现 */
 @theme {
-  --color-stone: #e4e0d8; /* 底色 */
-  --color-stone-deep: #d3cec3; /* 凹槽、进度条轨道 */
-  --color-plate: #f2efe9; /* 卡片面 */
-  --color-iron: #22262b; /* 主色：文字、粗边、深色块 */
-  --color-iron-soft: #3b4148;
-  --color-steel: #69717a; /* 次要文字 */
-  --color-ember: #e5501b; /* 强调：进度、热度 */
-  --color-ember-deep: #b53b10;
-  --color-brass: #a87a22; /* 里程碑 */
+  --color-paper: #f6f4f0;
+  --color-ink: #16181b;
+  --color-mute: #8b8f94;
+  --color-line: #e3e0da;
+  --color-track: #dcd8d0;
+  --color-ember: #e5501b;
+  --color-ember-soft: #f0b08f;
 
-  --font-sans: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-sans: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif;
   --font-num: 'Barlow Condensed', 'DIN Condensed', 'Arial Narrow', sans-serif;
 
-  --shadow-plate: 3px 3px 0 0 #22262b;
-  --shadow-press: 1px 1px 0 0 #22262b;
-
-  --animate-sheet-up: sheet-up 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-sheet-up: sheet-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
   --animate-fade-in: fade-in 0.18s ease-out;
 
   @keyframes sheet-up {
-    from { transform: translateY(24px); opacity: 0; }
+    from { transform: translateY(32px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
   @keyframes fade-in {
@@ -44,8 +39,8 @@ body {
   touch-action: none;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
-  background-color: var(--color-stone);
-  color: var(--color-iron);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 15px;
 }
@@ -60,11 +55,11 @@ body {
   overflow: hidden;
 }
 
-/* 数字统一用窄体、等宽数字 */
+/* 大数字：窄体超粗、等宽数字、略收紧 */
 .num {
   font-family: var(--font-num);
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
 }
 
 button:focus-visible,

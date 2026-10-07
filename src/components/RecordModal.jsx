@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import Sheet from './Sheet'
 import MoodPicker from './MoodPicker'
-import { formatClock, uuid } from '../lib/utils'
+import { uuid } from '../lib/utils'
 
-// 计时结束：写一句心得、选心境、保存
+const pad = (n) => n.toString().padStart(2, '0')
+
+// 计时结束：写一句、选状态、保存
 export default function RecordModal({ duration, project, onSave, onCancel, onAbandon }) {
   const [note, setNote] = useState('')
   const [mood, setMood] = useState('专注')
+  const h = Math.floor(duration / 3600)
+  const m = Math.floor((duration % 3600) / 60)
+  const s = duration % 60
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -22,45 +27,43 @@ export default function RecordModal({ duration, project, onSave, onCancel, onAba
   }
 
   return (
-    <Sheet title="这一锤，落下了">
-      <div className="flex items-end justify-between border-b-2 border-iron pb-4 mb-5">
-        <div>
-          <div className="text-[13px] text-steel">
-            {project.icon} {project.name}
-          </div>
-          <div className="num text-[52px] leading-none font-extrabold mt-1">{formatClock(duration)}</div>
-        </div>
+    <Sheet title={project.name}>
+      <div className="-mt-3 mb-7">
+        <div className="num text-[96px] leading-[0.82] tracking-[-1px]">{h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`}</div>
+        <p className="text-base font-bold mt-3">{h > 0 ? '小时 : 分 : 秒' : '分 : 秒'}，这一锤落下了</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <label className="block">
-          <span className="block text-sm font-bold mb-2">这次做了什么</span>
+          <span className="block text-sm font-bold text-mute mb-2">这次做了什么</span>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="一句话就好，比如：读完第三章"
             rows={3}
             maxLength={150}
-            className="w-full p-3 bg-white/70 border-2 border-iron/25 rounded-md text-base leading-relaxed resize-none focus:outline-none focus:border-iron"
+            className="w-full p-4 bg-white rounded-2xl text-base leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-ink placeholder:text-mute/60"
           />
         </label>
 
         <div>
-          <span className="block text-sm font-bold mb-2">状态</span>
+          <span className="block text-sm font-bold text-mute mb-2">状态</span>
           <MoodPicker selectedMood={mood} onSelect={setMood} />
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 pt-1">
-          <button type="button" onClick={onCancel} className="h-14 rounded-md border-2 border-iron text-base font-bold active:bg-stone-deep">
-            继续计时
+        <div className="space-y-2 pt-1">
+          <button type="submit" className="w-full h-[60px] rounded-full bg-ink text-paper text-[17px] font-black active:scale-[0.99]">
+            保存
           </button>
-          <button type="submit" className="h-14 rounded-md bg-ember text-plate text-base font-extrabold shadow-plate active:translate-x-px active:translate-y-px active:shadow-press">
-            保存记录
-          </button>
+          <div className="grid grid-cols-2">
+            <button type="button" onClick={onCancel} className="h-12 text-[15px] font-bold">
+              继续计时
+            </button>
+            <button type="button" onClick={onAbandon} className="h-12 text-[15px] font-bold text-mute">
+              不保存
+            </button>
+          </div>
         </div>
-        <button type="button" onClick={onAbandon} className="w-full h-10 text-sm font-bold text-steel active:text-ember-deep">
-          不保存，放弃这次计时
-        </button>
       </form>
     </Sheet>
   )

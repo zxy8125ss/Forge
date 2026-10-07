@@ -11,9 +11,7 @@ export default function MoodPicker({ selectedMood, onSelect }) {
             type="button"
             onClick={() => onSelect(m.label)}
             aria-pressed={active}
-            className={`h-16 rounded-md border-2 flex flex-col items-center justify-center gap-0.5 ${
-              active ? 'bg-iron border-iron text-plate' : 'bg-plate border-iron/15 text-iron'
-            }`}
+            className={`h-[68px] rounded-2xl flex flex-col items-center justify-center gap-1 ${active ? 'bg-ink text-paper' : 'bg-white text-ink'}`}
           >
             <span className="text-xl leading-none">{m.emoji}</span>
             <span className="text-[13px] font-bold">{m.label}</span>
