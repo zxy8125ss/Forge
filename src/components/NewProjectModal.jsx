@@ -1,22 +1,21 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import Sheet from './Sheet'
 import { uuid } from '../lib/utils'
 
-const COLORS = ['#c4622d', '#e8943a', '#d946ef', '#3b82f6', '#10b981', '#8a9099']
+const COLORS = ['#e5501b', '#a87a22', '#2f6f8f', '#3f7d4e', '#7a3fa0', '#22262b']
 const ICONS = ['✍️', '💻', '🎨', '📚', '🏋️', '🧘', '🎹', '🎸', '🗣️', '🧪']
 
-const labelCls = 'block text-[9px] font-bold text-forge-steel mb-1 uppercase'
-const inputCls =
-  'w-full p-2 bg-forge-bg border border-forge-border rounded-xl text-forge-light text-xs focus:outline-none focus:border-forge-orange/60'
-const toggleCls = (active) =>
-  `py-1.5 rounded-lg text-[10px] font-bold border transition-all ${
-    active ? 'bg-forge-orange/20 border-forge-orange text-forge-orange' : 'bg-forge-bg border-forge-border/40 text-forge-steel hover:border-forge-border'
+const Label = ({ children }) => <span className="block text-sm font-bold mb-2">{children}</span>
+const choice = (active) =>
+  `h-11 rounded-md border-2 font-bold text-[15px] transition-colors ${
+    active ? 'bg-iron border-iron text-plate' : 'bg-plate border-iron/20 text-iron active:border-iron'
   }`
+const inputCls = 'w-full h-12 px-3 bg-white/70 border-2 border-iron/25 rounded-md text-base focus:outline-none focus:border-iron'
 
 export default function NewProjectModal({ onCreate, onClose }) {
   const [name, setName] = useState('')
   const [icon, setIcon] = useState('💻')
-  const [color, setColor] = useState('#c4622d')
+  const [color, setColor] = useState(COLORS[0])
   const [period, setPeriod] = useState('daily')
   const [minutes, setMinutes] = useState(30)
   const [time, setTime] = useState('22:00')
@@ -39,42 +38,32 @@ export default function NewProjectModal({ onCreate, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-xs bg-forge-surface border border-forge-border rounded-2xl p-4 shadow-2xl space-y-4 text-forge-light"
-      >
-        <div className="flex justify-between items-center">
-          <h3 className="text-xs font-bold text-forge-light">新增专注项目</h3>
-          <button type="button" onClick={onClose} className="text-forge-steel hover:text-forge-light">
-            <X size={16} />
-          </button>
-        </div>
-
-        <div>
-          <label className={labelCls}>项目名称</label>
+    <Sheet title="新建项目" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <label className="block">
+          <Label>要长期坚持的事</Label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="例如：编程、写作、健身..."
+            placeholder="例如：写作、编程、健身"
             maxLength={10}
             required
+            autoFocus
             className={inputCls}
           />
-        </div>
+        </label>
 
         <div>
-          <label className={labelCls}>项目标识 (Emoji)</label>
-          <div className="grid grid-cols-5 gap-1.5">
+          <Label>图标</Label>
+          <div className="grid grid-cols-5 gap-2">
             {ICONS.map((e) => (
               <button
                 key={e}
                 type="button"
                 onClick={() => setIcon(e)}
-                className={`py-1 rounded-xl text-base border transition-all ${
-                  icon === e ? 'bg-forge-orange/20 border-forge-orange' : 'bg-forge-bg border-forge-border/40 text-forge-light hover:border-forge-border'
-                }`}
+                aria-pressed={icon === e}
+                className={`h-12 text-2xl rounded-md border-2 ${icon === e ? 'border-iron bg-stone-deep' : 'border-iron/15 bg-plate'}`}
               >
                 {e}
               </button>
@@ -83,62 +72,56 @@ export default function NewProjectModal({ onCreate, onClose }) {
         </div>
 
         <div>
-          <label className={labelCls}>目标周期</label>
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" onClick={() => setPeriod('daily')} className={toggleCls(period === 'daily')}>
-              每日打卡
-            </button>
-            <button type="button" onClick={() => setPeriod('weekly')} className={toggleCls(period === 'weekly')}>
-              每周打卡
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label className={labelCls}>周期目标时间 ({period === 'daily' ? '每日' : '每周'})</label>
-          <div className="flex gap-2 items-center">
-            <input
-              type="number"
-              value={minutes}
-              onChange={(e) => setMinutes(Math.max(1, parseInt(e.target.value) || 0))}
-              min="1"
-              max="1440"
-              required
-              className={inputCls}
-            />
-            <span className="text-[10px] text-forge-steel flex-shrink-0">分钟</span>
-          </div>
-        </div>
-
-        <div>
-          <label className={labelCls}>打卡时刻</label>
-          <input type="time" value={time} onChange={(e) => setTime(e.target.value)} required className={inputCls} />
-        </div>
-
-        <div>
-          <label className={labelCls}>主题色彩</label>
-          <div className="flex justify-between px-1">
+          <Label>颜色</Label>
+          <div className="flex gap-3">
             {COLORS.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => setColor(c)}
-                className="w-5 h-5 rounded-full border border-forge-border flex items-center justify-center transition-transform active:scale-90"
+                aria-label={`颜色 ${c}`}
+                aria-pressed={color === c}
+                className={`w-10 h-10 rounded-md border-2 ${color === c ? 'border-iron ring-2 ring-offset-2 ring-iron ring-offset-plate' : 'border-iron/20'}`}
                 style={{ backgroundColor: c }}
-              >
-                {color === c && <span className="w-1.5 h-1.5 bg-forge-light rounded-full" />}
-              </button>
+              />
             ))}
           </div>
         </div>
 
-        <button
-          type="submit"
-          className="w-full py-2 bg-forge-orange hover:bg-forge-orange/90 rounded-xl text-forge-light text-xs font-bold transition-transform active:scale-[0.98]"
-        >
-          置入熔炉
+        <div>
+          <Label>目标</Label>
+          <div className="grid grid-cols-2 gap-2 mb-2.5">
+            <button type="button" onClick={() => setPeriod('daily')} className={choice(period === 'daily')}>
+              每天
+            </button>
+            <button type="button" onClick={() => setPeriod('weekly')} className={choice(period === 'weekly')}>
+              每周
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              inputMode="numeric"
+              value={minutes}
+              onChange={(e) => setMinutes(Math.max(1, parseInt(e.target.value) || 0))}
+              min="1"
+              max="1440"
+              required
+              className={`${inputCls} num text-xl font-bold`}
+            />
+            <span className="text-base font-bold flex-shrink-0">分钟</span>
+          </div>
+        </div>
+
+        <label className="block">
+          <Label>提醒时刻</Label>
+          <input type="time" value={time} onChange={(e) => setTime(e.target.value)} required className={`${inputCls} num text-xl font-bold`} />
+        </label>
+
+        <button type="submit" className="w-full h-14 bg-ember text-plate rounded-md text-lg font-extrabold shadow-plate active:translate-x-px active:translate-y-px active:shadow-press">
+          放进熔炉
         </button>
       </form>
-    </div>
+    </Sheet>
   )
 }

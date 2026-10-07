@@ -3,9 +3,9 @@
 // 古典乐：10 首公有领域 / CC0 录音（来源见 public/music/CREDITS.md），随机连播
 
 export const AMBIENT_TRACKS = [
-  { id: 'forge-fire', title: '🔥 炉膛干柴噼啪', file: 'fire.wav' },
-  { id: 'forge-wind', title: '💨 鼓风深秋呼啸', file: 'wind.wav' },
-  { id: 'forge-rain', title: '🌧️ 熔炉窗外细雨', file: 'rain.wav' },
+  { id: 'forge-fire', title: '炉火', file: 'fire.wav' },
+  { id: 'forge-wind', title: '风声', file: 'wind.wav' },
+  { id: 'forge-rain', title: '雨声', file: 'rain.wav' },
 ]
 
 export const CLASSICAL_TRACKS = [
@@ -22,4 +22,4 @@ export const CLASSICAL_TRACKS = [
 ]
 
 // 选择器里的"古典乐随机连播"
-export const CLASSICAL_SHUFFLE = { id: 'classical-shuffle', title: '🎼 古典乐 · 随机连播' }
+export const CLASSICAL_SHUFFLE = { id: 'classical-shuffle', title: '古典乐 · 随机连播' }

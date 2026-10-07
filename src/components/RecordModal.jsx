@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import Sheet from './Sheet'
 import MoodPicker from './MoodPicker'
-import { formatDuration, uuid } from '../lib/utils'
+import { formatClock, uuid } from '../lib/utils'
 
-// 计时结束弹窗：写心得、选心境、保存
+// 计时结束：写一句心得、选心境、保存
 export default function RecordModal({ duration, project, onSave, onCancel, onAbandon }) {
   const [note, setNote] = useState('')
   const [mood, setMood] = useState('专注')
@@ -21,59 +22,46 @@ export default function RecordModal({ duration, project, onSave, onCancel, onAba
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-sm bg-forge-surface border border-forge-border rounded-2xl p-5 shadow-2xl">
-        <h3 className="text-base font-bold text-forge-light mb-1">
-          本次淬火已完成 {project.icon} {project.name}
-        </h3>
-        <p className="text-xs text-forge-steel mb-4">
-          成功熔铸时长：<span className="text-forge-amber font-bold font-mono text-sm">{formatDuration(duration)}</span>
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-[10px] font-bold text-forge-steel mb-1.5 uppercase tracking-wider">熔炼心得</label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="这块铁骨上留下了你怎样的印记？..."
-              rows={3}
-              maxLength={150}
-              className="w-full p-3 bg-forge-bg border border-forge-border rounded-xl text-forge-light text-xs focus:outline-none focus:border-forge-orange/60 resize-none transition-colors"
-            />
+    <Sheet title="这一锤，落下了">
+      <div className="flex items-end justify-between border-b-2 border-iron pb-4 mb-5">
+        <div>
+          <div className="text-[13px] text-steel">
+            {project.icon} {project.name}
           </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-forge-steel mb-1 uppercase tracking-wider">淬火心境</label>
-            <MoodPicker selectedMood={mood} onSelect={setMood} />
-          </div>
-
-          <div className="flex flex-col gap-2 pt-2">
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onCancel}
-                className="flex-1 py-2.5 bg-forge-bg border border-forge-border rounded-xl text-forge-steel text-xs font-semibold hover:text-forge-light transition-colors"
-              >
-                继续锻造
-              </button>
-              <button
-                type="submit"
-                className="flex-1 py-2.5 bg-forge-orange hover:bg-forge-orange/90 rounded-xl text-forge-light text-xs font-semibold transition-transform active:scale-[0.98] shadow-md shadow-forge-orange/20"
-              >
-                淬火封存
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={onAbandon}
-              className="py-2 text-[10px] text-red-500/70 hover:text-red-400 hover:underline font-medium transition-colors"
-            >
-              弃置本次熔炼（不保存记录）
-            </button>
-          </div>
-        </form>
+          <div className="num text-[52px] leading-none font-extrabold mt-1">{formatClock(duration)}</div>
+        </div>
       </div>
-    </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <label className="block">
+          <span className="block text-sm font-bold mb-2">这次做了什么</span>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="一句话就好，比如：读完第三章"
+            rows={3}
+            maxLength={150}
+            className="w-full p-3 bg-white/70 border-2 border-iron/25 rounded-md text-base leading-relaxed resize-none focus:outline-none focus:border-iron"
+          />
+        </label>
+
+        <div>
+          <span className="block text-sm font-bold mb-2">状态</span>
+          <MoodPicker selectedMood={mood} onSelect={setMood} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5 pt-1">
+          <button type="button" onClick={onCancel} className="h-14 rounded-md border-2 border-iron text-base font-bold active:bg-stone-deep">
+            继续计时
+          </button>
+          <button type="submit" className="h-14 rounded-md bg-ember text-plate text-base font-extrabold shadow-plate active:translate-x-px active:translate-y-px active:shadow-press">
+            保存记录
+          </button>
+        </div>
+        <button type="button" onClick={onAbandon} className="w-full h-10 text-sm font-bold text-steel active:text-ember-deep">
+          不保存，放弃这次计时
+        </button>
+      </form>
+    </Sheet>
   )
 }

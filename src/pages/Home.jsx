@@ -1,56 +1,72 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { useProjectStore } from '../store/useProjectStore'
 import ProjectCard from '../components/ProjectCard'
 import NewProjectModal from '../components/NewProjectModal'
-import { asset } from '../lib/utils'
+import ForgeMark from '../components/ForgeMark'
+
+const startOfToday = () => new Date().setHours(0, 0, 0, 0)
 
 export default function Home({ onStartTimer }) {
-  const { projects, addProject, deleteProject } = useProjectStore()
+  const { projects, records, addProject, deleteProject } = useProjectStore()
   const [creating, setCreating] = useState(false)
 
+  const today = startOfToday()
+  const todayMinutesBy = (id) => records.filter((r) => r.projectId === id && r.startAt >= today).reduce((a, r) => a + r.duration / 60, 0)
+  const todayTotal = records.filter((r) => r.startAt >= today).reduce((a, r) => a + r.duration / 60, 0)
+
   const handleDelete = (id, name) => {
-    if (window.confirm(`确定要废弃该熔炼项目“${name}”吗？此操作会同时删除该项目的所有专注记录，不可撤销！`)) {
-      deleteProject(id)
-    }
+    if (window.confirm(`删除“${name}”？这个项目的所有记录也会一起删除，无法恢复。`)) deleteProject(id)
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden w-full h-full max-w-md mx-auto">
-      <div className="pt-4 pb-2 px-4 flex flex-col items-center flex-shrink-0 border-b border-forge-border/20 bg-forge-bg/60 backdrop-blur-md">
-        <div className="flex flex-col items-center space-y-1">
-          <div className="text-3xl font-extrabold bg-gradient-to-r from-forge-orange to-forge-amber bg-clip-text text-transparent filter drop-shadow-[0_0_8px_#c4622d40] tracking-widest font-mono">
-            ∞
+    <div className="flex-1 flex flex-col overflow-hidden w-full max-w-md mx-auto">
+      <header className="flex-shrink-0 px-5 pt-5 pb-4 flex items-end justify-between border-b-2 border-iron">
+        <div className="flex items-center gap-3">
+          <ForgeMark className="w-11 h-11" />
+          <div>
+            <h1 className="text-[28px] leading-none font-black tracking-tight">熔炉</h1>
+            <p className="text-[13px] text-steel mt-1.5">相信时间的力量</p>
           </div>
-          <p className="text-[10px] text-forge-steel font-bold tracking-widest uppercase">相信时间的力量</p>
         </div>
-        <div className="my-3 flex-shrink-0 select-none">
-          <img
-            src={asset('home_illustration.png')}
-            alt="Believe in the power of time"
-            className="w-32 h-32 object-contain rounded-2xl border border-forge-border/10 shadow-lg shadow-black/30"
-          />
+        <div className="text-right">
+          <div className="text-[13px] text-steel">今天已锻造</div>
+          <div className="leading-none mt-1">
+            <span className="num text-[34px] font-extrabold">{Math.round(todayTotal)}</span>
+            <span className="text-sm font-bold ml-1">分钟</span>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 pt-4 pb-32 space-y-5">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pt-5 pb-8 space-y-5">
+        {projects.length === 0 && (
+          <div className="pt-6 pb-2">
+            <p className="text-2xl font-black leading-snug">
+              一万小时，
+              <br />
+              从第一块铁开始。
+            </p>
+            <p className="text-[15px] text-steel mt-3 leading-relaxed">建一个你想长期坚持的项目，每次专注都会累计成它的时长。</p>
+          </div>
+        )}
+
         {projects.map((p) => (
-          <ProjectCard key={p.id} project={p} onStart={() => onStartTimer(p.id)} onDelete={() => handleDelete(p.id, p.name)} />
+          <ProjectCard
+            key={p.id}
+            project={p}
+            todayMinutes={todayMinutesBy(p.id)}
+            onStart={() => onStartTimer(p.id)}
+            onDelete={() => handleDelete(p.id, p.name)}
+          />
         ))}
 
-        <div className="bg-forge-surface/30 border border-forge-border/20 border-dashed rounded-2xl p-5 text-center flex flex-col items-center justify-center space-y-3.5 shadow-inner">
-          <span className="text-[9px] text-forge-steel tracking-widest font-bold">把时间留给真正重要的事</span>
-          <div className="flex flex-col items-center space-y-0.5">
-            <span className="text-xl">🕹️</span>
-            <h4 className="font-extrabold text-xs text-forge-light tracking-tight">新建专注项目</h4>
-            <p className="text-[9px] text-forge-steel">开始记录一件你想长期坚持的事</p>
-          </div>
-          <button
-            onClick={() => setCreating(true)}
-            className="px-6 py-2 bg-black hover:bg-forge-orange/10 border border-forge-orange/30 hover:border-forge-orange text-forge-orange font-bold text-xs rounded-xl tracking-wider shadow-md active:scale-95 transition-all"
-          >
-            + 新建项目
-          </button>
-        </div>
+        <button
+          onClick={() => setCreating(true)}
+          className="w-full h-14 border-2 border-dashed border-iron/40 rounded-md flex items-center justify-center gap-2 text-base font-bold text-iron active:border-iron active:bg-plate"
+        >
+          <Plus size={20} strokeWidth={2.5} />
+          新建项目
+        </button>
       </div>
 
       {creating && (

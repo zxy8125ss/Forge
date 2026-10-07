@@ -18,7 +18,7 @@
 
 ## 技术栈
 
-React 19 + Vite + Tailwind CSS v4 + Zustand + idb + vite-plugin-pwa
+React 19 + Vite + Tailwind CSS v4 + Zustand + idb + vite-plugin-pwa；数字字体 Barlow Condensed（本地打包，不依赖 Google Fonts）
 
 ```
 src/
@@ -29,7 +29,7 @@ src/
 ├── workers/             计时 Worker
 ├── data/                声音曲目、心境表情
 ├── lib/                 里程碑计算、格式化工具
-├── components/          底部导航、项目卡片、弹窗、声音面板、锁屏预览
+├── components/          底部导航、项目卡片、底部弹窗、计时环、声音面板、标志
 └── pages/               熔炉 / 专注 / 历程 / 印记
 public/                  图标、插画、白噪声、music/ 古典乐
 docs/                    构建产物，GitHub Pages 从这里发布

@@ -1,76 +1,115 @@
-import { Calendar, Smile, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { useProjectStore } from '../store/useProjectStore'
 import { moodEmoji } from '../data/moods'
-import { formatDateTime, formatDuration } from '../lib/utils'
 
+const pad = (n) => n.toString().padStart(2, '0')
+const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+
+function dayLabel(ts) {
+  const d = new Date(ts)
+  const today = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(today.getDate() - 1)
+  if (d.toDateString() === today.toDateString()) return '今天'
+  if (d.toDateString() === yesterday.toDateString()) return '昨天'
+  return `${d.getMonth() + 1}月${d.getDate()}日 ${WEEK[d.getDay()]}`
+}
+
+function durationParts(sec) {
+  const h = Math.floor(sec / 3600)
+  const m = Math.floor((sec % 3600) / 60)
+  const s = sec % 60
+  if (h > 0) return m > 0 ? [[h, '小时'], [m, '分']] : [[h, '小时']]
+  if (m > 0) return s > 0 ? [[m, '分'], [s, '秒']] : [[m, '分钟']]
+  return [[sec, '秒']]
+}
+
+// 按天分组的锻造记录
 export default function Feed() {
   const { records, projects, deleteRecord } = useProjectStore()
 
+  const groups = []
+  records.forEach((r) => {
+    const key = new Date(r.startAt).toDateString()
+    let g = groups.find((x) => x.key === key)
+    if (!g) groups.push((g = { key, ts: r.startAt, items: [], total: 0 }))
+    g.items.push(r)
+    g.total += r.duration
+  })
+
   const handleDelete = (id) => {
-    if (window.confirm('确定要删除这条熔炼记录吗？这会同时在项目总时长中扣除本次时间。')) deleteRecord(id)
+    if (window.confirm('删除这条记录？对应时长会从项目里扣除。')) deleteRecord(id)
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden w-full h-full max-w-md mx-auto">
-      <div className="px-4 pt-3 pb-3 flex-shrink-0">
-        <h1 className="text-xl font-black text-forge-light tracking-tight">淬火历程</h1>
-        <p className="text-[10px] text-forge-steel tracking-wide">一步一个脚印，见证钢铁是怎样炼成的。</p>
-      </div>
+    <div className="flex-1 flex flex-col overflow-hidden w-full max-w-md mx-auto">
+      <header className="flex-shrink-0 px-5 pt-5 pb-4 border-b-2 border-iron">
+        <h1 className="text-[28px] leading-none font-black tracking-tight">历程</h1>
+        <p className="text-[13px] text-steel mt-1.5">每一次专注都留在这里</p>
+      </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-28">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-8">
         {records.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <span className="text-4xl mb-4">📜</span>
-            <p className="text-xs text-forge-steel">尚未留下淬火印记，快去计时精进吧！</p>
+          <div className="pt-10">
+            <p className="text-2xl font-black leading-snug">还没有记录。</p>
+            <p className="text-[15px] text-steel mt-3 leading-relaxed">在「专注」里完成一次计时并保存，就会出现在这里。</p>
           </div>
         ) : (
-          <div className="relative border-l border-forge-border/40 ml-3 pl-5 space-y-6">
-            {records.map((r) => {
-              const p = projects.find((x) => x.id === r.projectId)
-              if (!p) return null
-              return (
-                <div key={r.id} className="relative group">
-                  <div
-                    className="absolute -left-[26.5px] top-1.5 w-3 h-3 rounded-full border border-forge-surface flex items-center justify-center shadow-md"
-                    style={{ backgroundColor: p.color, boxShadow: `0 0 6px ${p.color}bb` }}
-                  />
-                  <div className="bg-forge-surface border border-forge-border rounded-2xl p-4 shadow-lg shadow-black/5 hover:border-forge-border/60 transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{p.icon}</span>
-                        <div>
-                          <h4 className="font-bold text-forge-light text-xs">{p.name}</h4>
-                          <div className="flex items-center gap-2 mt-0.5 text-[8px] text-forge-steel font-mono">
-                            <span className="flex items-center gap-0.5">
-                              <Calendar size={9} />
-                              {formatDateTime(r.startAt)}
-                            </span>
-                            <span className="flex items-center gap-0.5">
-                              <Smile size={9} />
-                              {r.mood} {moodEmoji(r.mood)}
-                            </span>
+          groups.map((g) => (
+            <section key={g.key} className="pt-5">
+              <div className="flex items-baseline justify-between mb-3">
+                <h2 className="text-base font-black">{dayLabel(g.ts)}</h2>
+                <span className="text-[13px] text-steel">
+                  共 <span className="num text-base font-bold text-iron">{Math.round(g.total / 60)}</span> 分钟
+                </span>
+              </div>
+              <ul className="space-y-3">
+                {g.items.map((r) => {
+                  const p = projects.find((x) => x.id === r.projectId)
+                  if (!p) return null
+                  const d = new Date(r.startAt)
+                  return (
+                    <li key={r.id} className="relative bg-plate border-2 border-iron/15 rounded-md overflow-hidden">
+                      <span className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: p.color }} aria-hidden />
+                      <div className="pl-5 pr-3 py-3.5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="text-[15px] font-bold truncate">
+                              {p.icon} {p.name}
+                            </div>
+                            <div className="text-[13px] text-steel mt-0.5">
+                              <span className="num text-sm">
+                                {pad(d.getHours())}:{pad(d.getMinutes())}
+                              </span>{' '}
+                              开始 · {moodEmoji(r.mood)} {r.mood}
+                            </div>
+                          </div>
+                          <div className="flex items-baseline gap-0.5 flex-shrink-0">
+                            {durationParts(r.duration).map(([v, u]) => (
+                              <span key={u}>
+                                <span className="num text-[30px] leading-none font-extrabold">{v}</span>
+                                <span className="text-[13px] font-bold mr-1">{u}</span>
+                              </span>
+                            ))}
                           </div>
                         </div>
+                        <div className="flex items-end justify-between gap-3 mt-2.5">
+                          <p className="text-[15px] leading-relaxed">{r.note}</p>
+                          <button
+                            onClick={() => handleDelete(r.id)}
+                            aria-label="删除记录"
+                            className="w-9 h-9 -mr-1 -mb-1 flex-shrink-0 flex items-center justify-center text-steel/70 active:text-ember-deep"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => handleDelete(r.id)}
-                        className="p-1 text-forge-steel hover:text-red-500 rounded-lg md:opacity-0 group-hover:opacity-100 transition-all"
-                        title="删除记录"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                    <p className="text-forge-light text-xs font-semibold mt-2.5 pl-1.5 border-l-2 border-forge-orange/60">
-                      已锻造：<span className="text-forge-amber font-mono font-bold">{formatDuration(r.duration)}</span>
-                    </p>
-                    <p className="text-forge-steel text-[10px] mt-2 leading-relaxed bg-forge-bg/30 p-2.5 rounded-xl italic">
-                      “ {r.note} ”
-                    </p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          ))
         )}
       </div>
     </div>

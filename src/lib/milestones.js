@@ -8,6 +8,10 @@ export function getStage(hours) {
   return '起步阶段'
 }
 
+export function getStageIndex(hours) {
+  return STAGES.indexOf(getStage(hours))
+}
+
 export function getNextMilestone(hours) {
   return MILESTONES.find((m) => m > hours) ?? 10000
 }
@@ -20,23 +24,32 @@ export function getProgress(hours) {
   return Math.min(1, Math.max(0, (hours - prev) / span))
 }
 
+// 阶段徽章：越往后越"热"——从生铁灰到熔铁橙，大师用黄铜
 export function getStageStyle(stage) {
   switch (stage) {
     case '起步阶段':
-      return 'text-zinc-400 border-zinc-700/30 bg-zinc-800/20'
+      return 'bg-stone-deep text-iron'
     case '摸索阶段':
-      return 'text-amber-500 border-amber-900/30 bg-amber-950/10'
+      return 'bg-iron-soft text-plate'
     case '渐悟阶段':
-      return 'text-orange-400 border-orange-950/30 bg-orange-950/10'
+      return 'bg-iron text-plate'
     case '立足阶段':
-      return 'text-amber-400 border-amber-950/30 bg-amber-950/10'
+      return 'bg-ember-deep text-plate'
     case '专业阶段':
-      return 'text-cyan-400 border-cyan-900/30 bg-cyan-950/10'
+      return 'bg-ember text-plate'
     case '资深阶段':
-      return 'text-fuchsia-400 border-fuchsia-950/30 bg-fuchsia-950/10'
+      return 'bg-iron text-ember'
     case '大师阶段':
-      return 'text-forge-amber animate-pulse border-forge-orange/30 bg-forge-orange/10'
+      return 'bg-brass text-plate'
     default:
-      return 'text-forge-light border-forge-border'
+      return 'bg-stone-deep text-iron'
   }
+}
+
+// 小时数显示：12.5 → "12.5"，0.25 → "15 分钟"
+export function splitHours(hours) {
+  const minutes = Math.round(hours * 60)
+  if (minutes < 60) return { value: String(minutes), unit: '分钟' }
+  const h = minutes / 60
+  return { value: h >= 100 ? Math.floor(h).toString() : (Math.floor(h * 10) / 10).toString(), unit: '小时' }
 }

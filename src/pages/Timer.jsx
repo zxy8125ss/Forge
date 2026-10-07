@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Pause, Play, Square, Flame } from 'lucide-react'
+import { Pause, Play, RotateCcw, Check, Minus, Plus } from 'lucide-react'
 import { useTimer } from '../hooks/useTimer'
 import { useAudio } from '../hooks/useAudio'
 import { useProjectStore } from '../store/useProjectStore'
 import RecordModal from '../components/RecordModal'
-import LockscreenPreview from '../components/LockscreenPreview'
+import HeatRing from '../components/HeatRing'
 import SoundPanel from '../components/SoundPanel'
 import { asset, formatClock } from '../lib/utils'
 
@@ -22,7 +22,6 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
 
   const [selectedId, setSelectedId] = useState(activeProjectId || preselectedProjectId || '')
   const [showRecord, setShowRecord] = useState(false)
-  const [showLockscreen, setShowLockscreen] = useState(false)
   const [mode, setMode] = useState('countdown') // countdown | countup
   const [targetMinutes, setTargetMinutes] = useState(25)
 
@@ -155,137 +154,127 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
     }
   }, [seconds, running, isPlaying, project, currentTrack, currentPiece, soundTitle, playSeconds, mode, targetSeconds, display, resume, pause, togglePlay])
 
-  const modeBtn = (value, label) => (
-    <button
-      type="button"
-      onClick={() => !running && setMode(value)}
-      disabled={running}
-      className={`px-3 py-1 rounded-full transition-all ${
-        mode === value ? 'bg-zinc-800 text-forge-orange shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
-      } ${running ? 'opacity-50 cursor-not-allowed' : ''}`}
-    >
-      {label}
-    </button>
-  )
+  const ringProgress = mode === 'countdown' ? (targetSeconds ? seconds / targetSeconds : 0) : (seconds % 3600) / 3600
+  const idle = !running && seconds === 0
 
   return (
-    <div className="flex-1 p-4 pb-28 flex flex-col justify-between max-w-md mx-auto w-full h-full overflow-hidden">
-      <div className="text-center mt-1 flex-shrink-0">
+    <div className="flex-1 overflow-y-auto no-scrollbar w-full max-w-md mx-auto px-5 pt-4 pb-6 flex flex-col">
+      <header className="flex-shrink-0">
         {activeProjectId ? (
-          <div className="inline-flex flex-col items-center space-y-0.5">
-            <span className="text-[10px] tracking-widest text-forge-steel font-bold uppercase">
-              {running ? '正在进行专注精炼' : '专注淬火暂歇'}
+          <div className="flex items-center justify-between h-12">
+            <h1 className="text-xl font-black truncate">
+              {project?.icon} {project?.name}
+            </h1>
+            <span className={`text-[13px] font-bold px-2.5 py-1 rounded-sm ${running ? 'bg-ember text-plate' : 'bg-stone-deep text-iron'}`}>
+              {running ? '锻造中' : '已暂停'}
             </span>
           </div>
         ) : (
-          <div className="inline-block w-full max-w-xs">
-            <select
-              value={selectedId}
-              onChange={(e) => setSelectedId(e.target.value)}
-              className="w-full bg-forge-surface border border-forge-border rounded-xl p-2 text-xs text-forge-light focus:outline-none focus:border-forge-orange"
+          <select
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
+            aria-label="选择项目"
+            className="w-full h-12 px-3 bg-plate border-2 border-iron rounded-md text-base font-bold focus:outline-none"
+          >
+            <option value="">选择要锻造的项目</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.icon} {p.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </header>
+
+      <section className="flex-1 flex flex-col items-center justify-center py-3">
+        <HeatRing progress={ringProgress} color={project?.color || '#e5501b'}>
+          <span className="text-sm font-bold text-steel">{mode === 'countdown' ? '剩余' : '已锻造'}</span>
+          <span className="num text-[68px] leading-none font-extrabold mt-1">{formatClock(display)}</span>
+          {mode === 'countdown' && idle ? (
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                type="button"
+                onClick={() => setTargetMinutes((m) => Math.max(5, m - 5))}
+                aria-label="减少 5 分钟"
+                className="w-9 h-9 rounded-md border-2 border-iron/25 flex items-center justify-center active:border-iron"
+              >
+                <Minus size={16} strokeWidth={3} />
+              </button>
+              <span className="w-16 text-center text-sm font-bold">
+                <span className="num text-xl">{targetMinutes}</span> 分
+              </span>
+              <button
+                type="button"
+                onClick={() => setTargetMinutes((m) => Math.min(180, m + 5))}
+                aria-label="增加 5 分钟"
+                className="w-9 h-9 rounded-md border-2 border-iron/25 flex items-center justify-center active:border-iron"
+              >
+                <Plus size={16} strokeWidth={3} />
+              </button>
+            </div>
+          ) : (
+            <span className="text-sm text-steel mt-3">{mode === 'countdown' ? `目标 ${targetMinutes} 分钟` : '每满一小时转一圈'}</span>
+          )}
+        </HeatRing>
+
+        <div className="mt-4 grid grid-cols-2 p-1 bg-stone-deep rounded-md w-56" role="tablist" aria-label="计时方式">
+          {[
+            ['countdown', '倒计时'],
+            ['countup', '正计时'],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={mode === value}
+              disabled={running}
+              onClick={() => !running && setMode(value)}
+              className={`h-9 rounded-[4px] text-[15px] font-bold transition-colors ${mode === value ? 'bg-iron text-plate' : 'text-iron/70'} ${
+                running ? 'opacity-50' : ''
+              }`}
             >
-              <option value="">-- 选择要熔炼的项目 --</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.icon} {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-      </div>
-
-      <div className="my-auto flex-1 flex flex-col items-center justify-center min-h-0 w-full px-2">
-        <div className="bg-black/90 border border-forge-border/40 rounded-3xl p-5 aspect-video w-full flex flex-col justify-between shadow-2xl relative overflow-hidden select-none">
-          <div className="flex justify-between items-center z-10">
-            <div className="flex bg-zinc-900 border border-zinc-800/80 p-0.5 rounded-full text-[8.5px] font-bold">
-              {modeBtn('countdown', '倒计时')}
-              {modeBtn('countup', '正计时')}
-            </div>
-            {project && (
-              <div className="px-3 py-1 bg-zinc-900/90 border border-zinc-800/80 rounded-full flex items-center gap-1.5 shadow-md">
-                <span className="text-xs">{project.icon}</span>
-                <span className="text-[9px] font-bold text-forge-light tracking-wide">{project.name}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col items-center justify-center my-auto z-10">
-            <div className="text-4xl font-extrabold font-mono text-white tracking-tight select-none drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]">
-              {formatClock(display)}
-            </div>
-            {mode === 'countdown' && !running && seconds === 0 && (
-              <div className="flex gap-3 mt-1.5 text-[8px] font-bold">
-                <button
-                  type="button"
-                  onClick={() => setTargetMinutes((m) => Math.max(5, m - 5))}
-                  className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded hover:text-white"
-                >
-                  -5m
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTargetMinutes((m) => Math.min(180, m + 5))}
-                  className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded hover:text-white"
-                >
-                  +5m
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="w-full flex justify-center items-center opacity-10">
-            <div className="w-12 h-1 bg-forge-orange rounded-full" />
-          </div>
+              {label}
+            </button>
+          ))}
         </div>
+      </section>
 
-        {project && (
-          <button
-            type="button"
-            onClick={() => setShowLockscreen(true)}
-            className="mt-3.5 text-[9px] text-forge-steel bg-forge-surface/20 border border-forge-border/20 px-3.5 py-1 rounded-full hover:text-forge-light hover:bg-forge-surface/40 active:scale-95 transition-all font-bold flex items-center gap-1"
-          >
-            <span>📱 预览 iOS 锁屏效果</span>
-          </button>
-        )}
-      </div>
-
-      <SoundPanel audio={audio} onSelect={handleSelectSound} onToggle={handleToggleSound} />
-
-      <div className="flex justify-center items-center gap-6 mb-2 flex-shrink-0">
-        {seconds > 0 && (
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm('确定要终止计时并清除吗？')) {
-                setSilenceActive(false)
-                reset()
-              }
-            }}
-            className="w-10 h-10 flex items-center justify-center bg-forge-surface border border-forge-border text-forge-steel hover:text-red-500 rounded-full transition-transform active:scale-90"
-            title="废弃重置"
-          >
-            <Square size={13} />
-          </button>
-        )}
+      <div className="flex-shrink-0 flex items-center justify-center gap-6 py-4">
+        <button
+          type="button"
+          disabled={seconds === 0}
+          onClick={() => {
+            if (window.confirm('清零这次计时？已计的时间不会保存。')) {
+              setSilenceActive(false)
+              reset()
+            }
+          }}
+          aria-label="清零"
+          className="w-14 h-14 rounded-md border-2 border-iron flex items-center justify-center disabled:opacity-25 active:bg-stone-deep"
+        >
+          <RotateCcw size={22} strokeWidth={2.5} />
+        </button>
         <button
           type="button"
           onClick={handleStartPause}
-          className="w-13 h-13 flex items-center justify-center bg-forge-orange text-forge-light rounded-full transition-all active:scale-95 shadow-lg shadow-forge-orange/20 hover:brightness-110"
-          style={{ backgroundColor: project?.color }}
+          aria-label={running ? '暂停' : '开始'}
+          className="w-[84px] h-[84px] rounded-md bg-ember text-plate flex items-center justify-center shadow-plate border-2 border-iron active:translate-x-px active:translate-y-px active:shadow-press"
         >
-          {running ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
+          {running ? <Pause size={36} fill="currentColor" /> : <Play size={36} fill="currentColor" className="ml-1" />}
         </button>
-        {seconds > 0 && (
-          <button
-            type="button"
-            onClick={finish}
-            className="w-10 h-10 flex items-center justify-center bg-forge-surface border border-forge-border text-forge-amber hover:bg-forge-orange hover:border-forge-orange hover:text-forge-light rounded-full transition-transform active:scale-90"
-            title="熔铸封存"
-          >
-            <Flame size={15} />
-          </button>
-        )}
+        <button
+          type="button"
+          disabled={seconds === 0}
+          onClick={finish}
+          aria-label="完成并记录"
+          className="w-14 h-14 rounded-md bg-iron text-plate flex items-center justify-center disabled:opacity-25 active:bg-iron-soft"
+        >
+          <Check size={26} strokeWidth={3} />
+        </button>
+      </div>
+
+      <div className="flex-shrink-0">
+        <SoundPanel audio={audio} onSelect={handleSelectSound} onToggle={handleToggleSound} />
       </div>
 
       {showRecord && project && (
@@ -298,18 +287,6 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
             resume()
           }}
           onAbandon={handleAbandon}
-        />
-      )}
-
-      {showLockscreen && (
-        <LockscreenPreview
-          project={project}
-          seconds={seconds}
-          running={running}
-          isPlaying={isPlaying}
-          soundTitle={soundTitle}
-          onToggle={handleStartPause}
-          onClose={() => setShowLockscreen(false)}
         />
       )}
     </div>
