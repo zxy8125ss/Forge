@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Pause, Play, RotateCcw, Check, Minus, Plus, ChevronDown, Moon, SkipForward, ListMusic, Volume2, VolumeX } from 'lucide-react'
 import { useTimer } from '../hooks/useTimer'
-import { useAudio } from '../hooks/useAudio'
+import { useAudio, getAudio } from '../hooks/useAudio'
 import { useProjectStore } from '../store/useProjectStore'
 import RecordModal from '../components/RecordModal'
 import ClockScreen from '../components/ClockScreen'
 import SoundSheet from '../components/SoundSheet'
+import MusicSeek from '../components/MusicSeek'
 import { asset } from '../lib/utils'
 
 const ARTWORK = [
@@ -128,6 +129,14 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
       if (seconds > 0 && !running) resumeSession()
       else toggleMusic()
     })
+    try {
+      ms.setActionHandler('seekto', (d) => {
+        const a = getAudio()
+        if (Number.isFinite(d.seekTime)) a.currentTime = d.seekTime
+      })
+    } catch {
+      /* 不支持时忽略 */
+    }
     ms.setActionHandler('pause', () => {
       if (running) pauseSession()
       else toggleMusic()
@@ -208,7 +217,8 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
   // 音乐条：左边是音乐开关（和计时的暂停是两回事），中间点开选曲，右边下一首
   const musicStatus = !musicOn ? '音乐已关 · 点左边打开' : isPlaying ? '正在播放 · 点这里换曲' : seconds > 0 && !running ? '随计时暂停 · 继续计时自动恢复' : '音乐停了 · 点左边继续'
   const musicBar = (
-    <div className="w-full max-w-[360px] h-16 rounded-full bg-white/90 shadow-[0_6px_20px_rgba(120,40,10,0.15)] flex items-center pl-2 pr-1.5 gap-2">
+    <div className="w-full max-w-[360px] flex flex-col items-center gap-1">
+    <div className="w-full h-16 rounded-full bg-white/90 shadow-[0_6px_20px_rgba(120,40,10,0.15)] flex items-center pl-2 pr-1.5 gap-2">
       <button
         onClick={toggleMusic}
         aria-label={musicOn && isPlaying ? '关闭音乐' : '打开音乐'}
@@ -229,6 +239,8 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
       <button onClick={() => setShowSound(true)} aria-label="曲目列表" className={`w-11 h-11 flex-shrink-0 rounded-full flex items-center justify-center text-ink ${tap}`}>
         <ListMusic size={20} />
       </button>
+    </div>
+    {musicOn && <MusicSeek className="px-3" textClass="text-ink/70" />}
     </div>
   )
 

@@ -51,7 +51,7 @@ function nextLocal(currentId) {
 
 // 全局唯一的 <audio>，切页面不中断；状态以 <audio> 的真实播放事件为准（锁屏、灵动岛暂停也能同步）
 let audioEl = null
-function getAudio() {
+export function getAudio() {
   if (!audioEl) {
     audioEl = new Audio()
     audioEl.addEventListener('playing', () => {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pause, Play, X, Volume2, VolumeX, SkipForward } from 'lucide-react'
 import AnalogClock from './AnalogClock'
+import MusicSeek from './MusicSeek'
 
 const WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 const pad = (n) => n.toString().padStart(2, '0')
@@ -121,13 +122,19 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
       )}
     </div>
   )
+  const musicBlock = (
+    <div>
+      {musicRow}
+      {musicOn && <MusicSeek className="mt-0.5" />}
+    </div>
+  )
 
   const remaining = (
     <div>
       <div className="text-base font-bold text-mute truncate">
         {project ? project.name : '未选择项目'} · {status}
       </div>
-      <div className="num leading-none mt-2 text-[min(18vw,96px)] landscape:text-[min(22vh,110px)]" style={{ color }}>
+      <div className="num leading-none mt-2 text-[min(18vw,96px)] landscape:text-[min(19vh,96px)]" style={{ color }}>
         {clock(display)}
       </div>
       <div className="h-1.5 rounded-full bg-track mt-4 overflow-hidden">
@@ -148,10 +155,10 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
             <div className="h-[88svh] aspect-square transition-transform duration-1000" style={{ transform: `translate(${shift.x}px, ${shift.y}px)` }}>
               <AnalogClock now={now} progress={progress} running={running} color={color} className="w-full h-full" />
             </div>
-            <div className="h-full flex flex-col justify-center gap-8 min-w-0 max-w-[400px] py-4 relative">
+            <div className="h-full flex flex-col justify-center gap-5 min-w-0 max-w-[400px] py-4 relative">
               <div className="absolute top-2 right-0">{closeBtn}</div>
               {remaining}
-              {musicRow}
+              {musicBlock}
               <div>{toggleBtn}</div>
             </div>
           </div>
@@ -170,7 +177,7 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
                 </div>
               </div>
               <div className="mt-12">{remaining}</div>
-              <div className="mt-6">{musicRow}</div>
+              <div className="mt-6">{musicBlock}</div>
             </div>
             <div className="flex justify-center">{toggleBtn}</div>
           </div>
