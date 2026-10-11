@@ -36,7 +36,8 @@ body {
   height: 100svh;
   position: fixed;
   overflow: hidden;
-  touch-action: none;
+  overscroll-behavior: none;
+  color-scheme: light;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   background-color: var(--color-paper);
@@ -53,6 +54,15 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+button,
+[role='button'],
+select,
+label {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* 大数字：窄体超粗、等宽数字、略收紧 */

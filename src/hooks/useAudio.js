@@ -96,8 +96,12 @@ export function useAudio() {
     emit()
   }
 
+  // 没选曲目时直接开始古典乐随机连播
   const togglePlay = () => {
-    if (!shared.selection) return
+    if (!shared.selection) {
+      selectTrack(CLASSICAL_SHUFFLE.id)
+      return
+    }
     const audio = getAudio()
     if (shared.isPlaying) {
       audio.pause()
@@ -133,7 +137,19 @@ export function useAudio() {
     }
   }
 
+  // 下一首（古典乐）
+  const next = () => {
+    if (!isClassicalId(shared.selection?.id)) return
+    const audio = getAudio()
+    audio.pause()
+    setPlaySeconds(0)
+    shared.isPlaying = true
+    startPiece(pickNextClassical(shared.piece?.id))
+  }
+
   return {
+    next,
+    canNext: isClassicalId(selection?.id),
     ambientTracks: AMBIENT_TRACKS,
     classicalTracks: CLASSICAL_TRACKS,
     classicalShuffle: CLASSICAL_SHUFFLE,
