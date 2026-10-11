@@ -22,7 +22,7 @@ export default function AnalogClock({ now, progress = 0, running, color = '#e550
         y1={c - r1 * Math.cos(a)}
         x2={c + (R - 4) * Math.sin(a)}
         y2={c - (R - 4) * Math.cos(a)}
-        stroke={major ? '#e9e1d6' : '#6a6058'}
+        stroke={major ? '#16181b' : '#b9b4ab'}
         strokeWidth={quarter ? 9 : major ? 5 : 2.2}
       />
     )
@@ -36,12 +36,12 @@ export default function AnalogClock({ now, progress = 0, running, color = '#e550
     <svg viewBox={`0 0 ${C} ${C}`} className={className} aria-label="时钟" role="img">
       <defs>
         <radialGradient id="face" cx="50%" cy="40%" r="60%">
-          <stop offset="0%" stopColor="#2a221d" />
-          <stop offset="100%" stopColor="#17120f" />
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#efebe4" />
         </radialGradient>
       </defs>
       <circle cx={c} cy={c} r={R + 4} fill="url(#face)" />
-      <circle cx={c} cy={c} r={ringR} fill="none" stroke="#2b2420" strokeWidth="8" />
+      <circle cx={c} cy={c} r={ringR} fill="none" stroke="#dcd8d0" strokeWidth="8" />
       <circle
         cx={c}
         cy={c}
@@ -55,10 +55,10 @@ export default function AnalogClock({ now, progress = 0, running, color = '#e550
         style={{ transition: 'stroke-dasharray 1s linear' }}
       />
       {ticks}
-      {hand((h + m / 60) * 30, 120, 22, 15, '#f1ebe3')}
-      {hand((m + s / 60) * 6, 190, 26, 9, '#f1ebe3')}
+      {hand((h + m / 60) * 30, 120, 22, 15, '#16181b')}
+      {hand((m + s / 60) * 6, 190, 26, 9, '#16181b')}
       {running && hand(s * 6, 204, 42, 3.5, color)}
-      <circle cx={c} cy={c} r="12" fill="#17120f" stroke={running ? color : '#bdb3a7'} strokeWidth="5" />
+      <circle cx={c} cy={c} r="12" fill="#f6f4f0" stroke={running ? color : '#16181b'} strokeWidth="5" />
     </svg>
   )
 }
