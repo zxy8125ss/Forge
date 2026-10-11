@@ -32,9 +32,8 @@ html,
 body {
   margin: 0;
   padding: 0;
-  width: 100vw;
-  height: 100svh;
-  position: fixed;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
   color-scheme: light;
@@ -48,7 +47,7 @@ body {
 
 #root {
   width: 100%;
-  height: 100svh;
+  height: 100%;
   padding-top: env(safe-area-inset-top, 0px);
   box-sizing: border-box;
   display: flex;
