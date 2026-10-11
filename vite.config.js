@@ -30,7 +30,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // 安装时预缓存界面和白噪声；古典乐体积大，播放过一次后再缓存
+        // 安装时预缓存界面和白噪声；交响乐体积大，播放过一次后再缓存
         globPatterns: ['**/*.{js,css,html,png,svg,wav,woff2,webmanifest}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [

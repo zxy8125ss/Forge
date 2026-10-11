@@ -30,7 +30,7 @@ export default function SoundSheet({ audio, onSelect, onClose }) {
           ))}
         </div>
         <div>
-          <h3 className="text-sm font-bold text-mute mb-1">古典乐 · 放完自动随机接下一首</h3>
+          <h3 className="text-sm font-bold text-mute mb-1">交响乐 · 放完自动随机接下一首</h3>
           <Row id={classicalShuffle.id} title="随机连播" />
           {classicalTracks.map((t) => (
             <Row key={t.id} id={t.id} title={t.title} />
