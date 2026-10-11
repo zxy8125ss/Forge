@@ -30,11 +30,24 @@ export default function SoundSheet({ audio, onSelect, onClose }) {
           ))}
         </div>
         <div>
-          <h3 className="text-sm font-bold text-mute mb-1">交响乐 · 放完自动随机接下一首</h3>
-          <Row id={classicalShuffle.id} title="随机连播" />
-          {classicalTracks.map((t) => (
-            <Row key={t.id} id={t.id} title={t.title} />
-          ))}
+          <h3 className="text-sm font-bold text-mute mb-1">古典乐 · 放完自动随机接下一首</h3>
+          <Row id={classicalShuffle.id} title="随机连播（全部 20 首）" />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-mute mb-1">交响乐</h3>
+          {classicalTracks
+            .filter((t) => t.group === 'symphony')
+            .map((t) => (
+              <Row key={t.id} id={t.id} title={t.title} />
+            ))}
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-mute mb-1">大提琴与小提琴</h3>
+          {classicalTracks
+            .filter((t) => t.group === 'strings')
+            .map((t) => (
+              <Row key={t.id} id={t.id} title={t.title} />
+            ))}
         </div>
       </div>
     </Sheet>
