@@ -29,3 +29,18 @@
 原始文件页面：`https://commons.wikimedia.org/wiki/` + 上表"原始文件"一栏（空格换成下划线）。
 
 CC BY-SA 授权的 3 首仅做了转码和响度调整，未改动内容；转码后的文件同样以 CC BY-SA 授权。
+
+## 环境声（public/ambient/）
+
+均来自 Wikimedia Commons，作者 Beeld en Geluid（荷兰声音与影像研究所），许可 CC BY-SA 3.0。截取其中 4 分钟、统一音量并做首尾无缝循环。
+
+| 文件 | 名称 | 原始文件 |
+|---|---|---|
+| fire.mp3 | 壁炉柴火 | Knetteren van hout in een open haard - SoundCloud - Beeld en Geluid.ogg |
+| rain-roof.mp3 | 雨打屋檐 | Regen op een pannendak - SoundCloud - Beeld en Geluid.ogg |
+| thunder.mp3 | 雷雨 | Regen en onweer - SoundCloud - Beeld en Geluid.ogg |
+| stream.mp3 | 林间溪流 | Bos met vogels bij een beek - SoundCloud - Beeld en Geluid.ogg |
+| waves.mp3 | 海浪 | Branding aan het strand - SoundCloud - Beeld en Geluid.ogg |
+| wind.mp3 | 风声 | Het ruisen van de wind - SoundCloud - Beeld en Geluid.ogg |
+| birds.mp3 | 林中鸟鸣 | Bos met vogels - SoundCloud - Beeld en Geluid.ogg |
+| crickets.mp3 | 夏夜虫鸣 | Krekels en kikkers - SoundCloud - Beeld en Geluid.ogg |

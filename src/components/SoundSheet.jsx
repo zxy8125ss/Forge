@@ -74,7 +74,7 @@ export default function SoundSheet({ audio, onSelect, onClose }) {
           <input ref={fileRef} type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac" multiple hidden onChange={onFiles} />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-mute mb-1">环境白噪声</h3>
+          <h3 className="text-sm font-bold text-mute mb-1">环境声</h3>
           {ambientTracks.map((t) => (
             <Row key={t.id} id={t.id} title={t.title} />
           ))}

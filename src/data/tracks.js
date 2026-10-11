@@ -1,11 +1,16 @@
 // 声音素材
-// 环境白噪声：单曲循环
+// 环境声：真实录音（荷兰 Beeld en Geluid 声音档案，CC BY-SA 3.0），截 4 分钟做成首尾无缝循环
 // 古典乐：20 首公有领域 / CC 授权录音（来源见 public/music/CREDITS.md），分交响乐、大提琴与小提琴两组，随机连播
 
 export const AMBIENT_TRACKS = [
-  { id: 'forge-fire', title: '炉火', file: 'fire.wav' },
-  { id: 'forge-wind', title: '风声', file: 'wind.wav' },
-  { id: 'forge-rain', title: '雨声', file: 'rain.wav' },
+  { id: 'forge-fire', title: '壁炉柴火', file: 'ambient/fire.mp3' },
+  { id: 'forge-rain', title: '雨打屋檐', file: 'ambient/rain-roof.mp3' },
+  { id: 'amb-thunder', title: '雷雨', file: 'ambient/thunder.mp3' },
+  { id: 'amb-stream', title: '林间溪流', file: 'ambient/stream.mp3' },
+  { id: 'amb-waves', title: '海浪', file: 'ambient/waves.mp3' },
+  { id: 'forge-wind', title: '风声', file: 'ambient/wind.mp3' },
+  { id: 'amb-birds', title: '林中鸟鸣', file: 'ambient/birds.mp3' },
+  { id: 'amb-crickets', title: '夏夜虫鸣', file: 'ambient/crickets.mp3' },
 ]
 
 export const CLASSICAL_TRACKS = [

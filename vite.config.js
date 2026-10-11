@@ -35,7 +35,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.includes('/music/'),
+            urlPattern: ({ url }) => url.pathname.includes('/music/') || url.pathname.includes('/ambient/'),
             handler: 'CacheFirst',
             options: {
               cacheName: 'forge-music',
