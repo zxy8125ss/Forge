@@ -52,13 +52,15 @@ export default function App() {
     <div className="w-full h-full flex-1 overflow-hidden flex flex-col bg-paper text-ink select-none">
       <main className="flex-1 overflow-hidden flex flex-col">{renderPage()}</main>
       {!(tab === 'timer' && timerActive) && (
-        <BottomNav
-          activeTab={tab}
-          onTabChange={(next) => {
-            if (next !== 'timer') setPreselectedProjectId('')
-            setTab(next)
-          }}
-        />
+        <div className={tab === 'timer' ? 'landscape:hidden' : ''}>
+          <BottomNav
+            activeTab={tab}
+            onTabChange={(next) => {
+              if (next !== 'timer') setPreselectedProjectId('')
+              setTab(next)
+            }}
+          />
+        </div>
       )}
     </div>
   )

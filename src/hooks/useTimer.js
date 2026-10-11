@@ -8,13 +8,11 @@ export function useTimer() {
     seconds,
     running,
     activeProjectId,
-    startTime,
     startTimer,
     pauseTimer,
     resumeTimer,
     resetTimer,
     tick,
-    setSeconds,
   } = useTimerStore()
 
   useEffect(() => {
@@ -31,17 +29,12 @@ export function useTimer() {
     worker.postMessage(running ? 'start' : 'stop')
   }, [running])
 
-  // 锁屏回来后按真实时间校正
+  // 锁屏、切回前台时立即按真实时间校正
   useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === 'visible' && running && startTime) {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000)
-        if (elapsed > seconds) setSeconds(elapsed)
-      }
-    }
+    const onVisible = () => document.visibilityState === 'visible' && tick()
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [running, startTime, seconds, setSeconds])
+  }, [tick])
 
   return {
     seconds,

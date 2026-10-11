@@ -1,57 +1,58 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pause, Play, X } from 'lucide-react'
-import { formatClock } from '../lib/utils'
 import AnalogClock from './AnalogClock'
 
 const WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 const pad = (n) => n.toString().padStart(2, '0')
+const clock = (sec) => {
+  const h = Math.floor(sec / 3600)
+  const m = Math.floor((sec % 3600) / 60)
+  const s = sec % 60
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
+}
 
-// 熄屏时钟：纯黑底 + 暗色文字（OLED 屏黑色不发光，常亮也省电）
-// 平时只显示时间和本次计时；点一下屏幕亮出控制按钮，5 秒后自动变暗
-// 每分钟轻微移动位置，防止烧屏
-export default function ClockScreen({ project, display, modeLabel, progress, running, soundTitle, isPlaying, onToggle, onClose }) {
+// 熄屏时钟：深暖色底（不是死黑），竖屏数字时钟、横屏指针表盘
+// 只有一个操作：暂停 / 继续这次专注（音乐会跟着停和恢复）。按钮始终可点，闲置 8 秒后整体调暗省电
+export default function ClockScreen({ project, display, modeLabel, progress, running, seconds = 0, soundTitle, isPlaying, onToggle, onClose }) {
   const [now, setNow] = useState(new Date())
   const [awake, setAwake] = useState(true)
   const [shift, setShift] = useState({ x: 0, y: 0 })
-  const sleepTimer = useRef(null)
   const [landscape, setLandscape] = useState(() => window.matchMedia('(orientation: landscape)').matches)
-
-  // 横竖屏切换
-  useEffect(() => {
-    const mq = window.matchMedia('(orientation: landscape)')
-    const onChange = () => setLandscape(mq.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
+  const timer = useRef(null)
 
   const wake = () => {
     setAwake(true)
-    clearTimeout(sleepTimer.current)
-    sleepTimer.current = setTimeout(() => setAwake(false), 5000)
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => setAwake(false), 8000)
   }
 
   useEffect(() => {
     wake()
     const t = setInterval(() => setNow(new Date()), 1000)
+    const mq = window.matchMedia('(orientation: landscape)')
+    const onChange = () => setLandscape(mq.matches)
+    mq.addEventListener('change', onChange)
     return () => {
       clearInterval(t)
-      clearTimeout(sleepTimer.current)
+      clearTimeout(timer.current)
+      mq.removeEventListener('change', onChange)
     }
   }, [])
 
-  // 防烧屏：每分钟换一个小偏移
+  // 防残影：每分钟轻微挪动
+  const minute = now.getMinutes()
   useEffect(() => {
-    setShift({ x: Math.round((Math.random() - 0.5) * 24), y: Math.round((Math.random() - 0.5) * 40) })
-  }, [now.getMinutes()])
+    setShift({ x: Math.round((Math.random() - 0.5) * 16), y: Math.round((Math.random() - 0.5) * 16) })
+  }, [minute])
 
-  // 保持屏幕不自动锁定（支持的浏览器才生效；切回前台时重新申请）
+  // 屏幕常亮
   useEffect(() => {
     let lock = null
     const request = async () => {
       try {
         if ('wakeLock' in navigator && document.visibilityState === 'visible') lock = await navigator.wakeLock.request('screen')
       } catch {
-        /* 不支持或被拒绝时忽略 */
+        /* 不支持时忽略 */
       }
     }
     request()
@@ -62,116 +63,103 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
     }
   }, [])
 
-  const color = project?.color || '#e5501b'
-  const dim = awake ? 'opacity-100' : 'opacity-55'
+  const color = project?.color && project.color !== '#16181b' ? project.color : '#ff6a2b'
+  const started = seconds > 0 || running
+  const status = running ? modeLabel : started ? '已暂停' : '未开始'
 
-  const stop = (fn) => (e) => {
-    e.stopPropagation()
-    fn()
-    wake()
-  }
-  const controls = awake ? 'opacity-100' : 'opacity-0 pointer-events-none'
+  const toggleBtn = (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        wake()
+        onToggle()
+      }}
+      className="h-16 px-8 rounded-full bg-[#f1ebe3] text-[#17120f] flex items-center justify-center gap-2.5 text-[17px] font-black touch-manipulation active:scale-95 transition-transform"
+    >
+      {running ? <Pause size={22} fill="currentColor" /> : <Play size={22} fill="currentColor" />}
+      {running ? '暂停专注' : started ? '继续专注' : '开始专注'}
+    </button>
+  )
 
-  // 横屏：指针表盘，不显示数字
-  if (landscape) {
-    return (
-      <div
-        className="fixed inset-0 z-50 bg-black select-none animate-fade-in flex items-center justify-center pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
-        onClick={wake}
-      >
-        <div
-          className={`h-[92svh] aspect-square transition-[transform,opacity] duration-1000 ${dim}`}
-          style={{ transform: `translate(${shift.x}px, ${Math.round(shift.y / 3)}px)` }}
-        >
-          <AnalogClock now={now} progress={progress} running={running} color={color} className="w-full h-full" />
-        </div>
+  const closeBtn = (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        onClose()
+      }}
+      aria-label="退出熄屏时钟"
+      className="w-12 h-12 rounded-full flex items-center justify-center text-[#c9bfb3] bg-white/5 touch-manipulation"
+    >
+      <X size={24} />
+    </button>
+  )
 
-        <div className={`absolute left-[calc(env(safe-area-inset-left)+28px)] bottom-7 transition-opacity duration-1000 ${awake ? 'opacity-100' : 'opacity-50'}`}>
-          <div className="text-base font-bold text-[#8a8a8a]">{project ? `${project.icon} ${project.name}` : ''}</div>
-          <div className="text-[13px] text-[#555] mt-0.5">{running ? (isPlaying ? `♪ ${soundTitle}` : '专注中') : '已暂停'}</div>
-        </div>
-
-        <button
-          type="button"
-          onClick={stop(onClose)}
-          aria-label="退出熄屏时钟"
-          className={`absolute top-4 right-[calc(env(safe-area-inset-right)+16px)] w-11 h-11 flex items-center justify-center text-[#9a9a9a] transition-opacity duration-500 ${controls}`}
-        >
-          <X size={26} />
-        </button>
-        <button
-          type="button"
-          onClick={stop(onToggle)}
-          aria-label={running ? '暂停' : '继续'}
-          className={`absolute bottom-6 right-[calc(env(safe-area-inset-right)+24px)] w-[68px] h-[68px] rounded-full border-2 border-[#444] text-[#c8c8c8] flex items-center justify-center transition-opacity duration-500 ${controls}`}
-        >
-          {running ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
-        </button>
+  const remaining = (
+    <div>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-base font-bold text-[#d9d0c4] truncate">{project ? `${project.icon} ${project.name}` : '未选择项目'}</span>
+        <span className="text-sm font-bold text-[#a0958a] flex-shrink-0">{status}</span>
       </div>
-    )
+      <div className="num leading-none mt-2 text-[min(18vw,96px)] landscape:text-[min(15vh,84px)]" style={{ color }}>
+        {clock(display)}
+      </div>
+      <div className="h-1.5 rounded-full bg-white/10 mt-4 overflow-hidden">
+        <div className="h-full rounded-full transition-[width] duration-1000" style={{ width: `${Math.min(1, progress) * 100}%`, backgroundColor: color }} />
+      </div>
+      <p className="text-sm text-[#8f857a] truncate mt-3">{isPlaying ? `♪ ${soundTitle}` : '没有放音乐'}</p>
+    </div>
+  )
+
+  const bg = {
+    background: `radial-gradient(130% 75% at 50% 115%, ${running ? '#4a1f10' : '#33201a'} 0%, #211611 45%, #15110f 100%)`,
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black text-[#9a9a9a] flex flex-col select-none animate-fade-in pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
-      onClick={wake}
-    >
-      <div className={`flex justify-end px-4 pt-3 transition-opacity duration-500 ${awake ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onClose()
-          }}
-          aria-label="退出熄屏时钟"
-          className="w-11 h-11 flex items-center justify-center text-[#9a9a9a] active:text-white"
-        >
-          <X size={26} />
-        </button>
-      </div>
-
-      <div
-        className={`flex-1 flex flex-col items-center justify-center px-6 transition-[transform,opacity] duration-1000 ${dim}`}
-        style={{ transform: `translate(${shift.x}px, ${shift.y}px)` }}
-      >
-        <div className="text-base font-bold text-[#7a7a7a]">
-          {now.getMonth() + 1}月{now.getDate()}日 {WEEK[now.getDay()]}
-        </div>
-        <div className="num font-extrabold leading-[0.85] mt-2 text-[min(30vw,160px)] text-[#b5b5b5]">
-          {pad(now.getHours())}
-          <span style={{ color: running ? color : '#555' }}>:</span>
-          {pad(now.getMinutes())}
-        </div>
-
-        <div className="mt-10 w-full max-w-[260px]">
-          <div className="flex items-baseline justify-between">
-            <span className="text-[13px] font-bold text-[#7a7a7a] truncate">{project ? `${project.icon} ${project.name}` : '未选择项目'}</span>
-            <span className="text-[13px] text-[#6a6a6a]">{running ? modeLabel : '已暂停'}</span>
+    <div className="fixed inset-0 z-50 text-[#f1ebe3] select-none animate-fade-in" style={bg} onClick={wake}>
+      <div className={`h-full w-full transition-opacity duration-1000 ${awake ? 'opacity-100' : 'opacity-60'}`}>
+        {landscape ? (
+          <div className="h-full grid grid-cols-[auto_1fr] items-center gap-10 pl-[max(env(safe-area-inset-left),28px)] pr-[max(env(safe-area-inset-right),28px)] py-5">
+            <div className="h-[88svh] aspect-square transition-transform duration-1000" style={{ transform: `translate(${shift.x}px, ${shift.y}px)` }}>
+              <AnalogClock now={now} progress={progress} running={running} color={color} className="w-full h-full" />
+            </div>
+            <div className="h-full flex flex-col justify-between min-w-0 max-w-[420px] py-2">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="text-base font-bold text-[#a0958a]">
+                    {now.getMonth() + 1}月{now.getDate()}日 {WEEK[now.getDay()]}
+                  </div>
+                  <div className="num text-[48px] leading-none mt-1">
+                    {pad(now.getHours())}:{pad(now.getMinutes())}
+                  </div>
+                </div>
+                {closeBtn}
+              </div>
+              {remaining}
+              <div>{toggleBtn}</div>
+            </div>
           </div>
-          <div className="num text-[44px] leading-none font-extrabold mt-1 text-[#9a9a9a]">{formatClock(display)}</div>
-          <div className="h-[3px] bg-[#222] mt-3 overflow-hidden">
-            <div className="h-full transition-[width] duration-1000" style={{ width: `${Math.min(1, progress) * 100}%`, backgroundColor: color, opacity: 0.7 }} />
+        ) : (
+          <div className="h-full flex flex-col px-7 pt-[calc(env(safe-area-inset-top)+12px)] pb-[calc(env(safe-area-inset-bottom)+28px)]">
+            <div className="flex justify-end">{closeBtn}</div>
+            <div className="flex-1 flex flex-col justify-center transition-transform duration-1000" style={{ transform: `translate(${shift.x}px, ${shift.y}px)` }}>
+              <div className="text-center">
+                <div className="text-lg font-bold text-[#a0958a]">
+                  {now.getMonth() + 1}月{now.getDate()}日 {WEEK[now.getDay()]}
+                </div>
+                <div className="num leading-[0.85] text-[min(36vw,180px)] mt-2">
+                  {pad(now.getHours())}
+                  <span style={{ color: running ? color : '#6a6058' }}>:</span>
+                  {pad(now.getMinutes())}
+                </div>
+              </div>
+              <div className="mt-12">{remaining}</div>
+            </div>
+            <div className="flex justify-center">{toggleBtn}</div>
           </div>
-          {isPlaying && <div className="text-[13px] text-[#5f5f5f] truncate mt-2">♪ {soundTitle}</div>}
-        </div>
+        )}
       </div>
-
-      <div className={`flex justify-center pb-10 transition-opacity duration-500 ${awake ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onToggle()
-            wake()
-          }}
-          aria-label={running ? '暂停' : '继续'}
-          className="w-[72px] h-[72px] rounded-full border-2 border-[#444] text-[#c8c8c8] flex items-center justify-center active:bg-[#1a1a1a]"
-        >
-          {running ? <Pause size={30} fill="currentColor" /> : <Play size={30} fill="currentColor" className="ml-1" />}
-        </button>
-      </div>
-
-      {!awake && <p className="absolute bottom-[calc(env(safe-area-inset-bottom)+16px)] inset-x-0 text-center text-xs text-[#3a3a3a]">轻点屏幕显示按钮</p>}
     </div>
   )
 }
