@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Pause, Play, X } from 'lucide-react'
+import { Pause, Play, X, Volume2, VolumeX, SkipForward } from 'lucide-react'
 import AnalogClock from './AnalogClock'
 
 const WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
@@ -13,7 +13,7 @@ const clock = (sec) => {
 
 // 熄屏时钟：深暖色底（不是死黑），竖屏数字时钟、横屏指针表盘
 // 只有一个操作：暂停 / 继续这次专注（音乐会跟着停和恢复）。按钮始终可点，闲置 8 秒后整体调暗省电
-export default function ClockScreen({ project, display, modeLabel, progress, running, seconds = 0, soundTitle, isPlaying, onToggle, onClose }) {
+export default function ClockScreen({ project, display, modeLabel, progress, running, seconds = 0, soundTitle, isPlaying, musicOn, canNext, onToggleMusic, onNext, onToggle, onClose }) {
   const [now, setNow] = useState(new Date())
   const [awake, setAwake] = useState(true)
   const [shift, setShift] = useState({ x: 0, y: 0 })
@@ -44,6 +44,20 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
   useEffect(() => {
     setShift({ x: Math.round((Math.random() - 0.5) * 16), y: Math.round((Math.random() - 0.5) * 16) })
   }, [minute])
+
+  // 打开时让系统状态栏也变深色，和页面连成一片；关闭后恢复浅色
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="color-scheme"]')
+    const root = document.documentElement
+    meta?.setAttribute('content', 'dark')
+    root.style.colorScheme = 'dark'
+    document.body.style.backgroundColor = '#15110f'
+    return () => {
+      meta?.setAttribute('content', 'light')
+      root.style.colorScheme = ''
+      document.body.style.backgroundColor = ''
+    }
+  }, [])
 
   // 屏幕常亮
   useEffect(() => {
@@ -96,19 +110,43 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
     </button>
   )
 
+  const stop = (fn) => (e) => {
+    e.stopPropagation()
+    wake()
+    fn()
+  }
+
+  // 音乐：开关 + 曲名 + 下一首
+  const musicRow = (
+    <div className="flex items-center gap-2 min-w-0">
+      <button
+        type="button"
+        onClick={stop(onToggleMusic)}
+        aria-label={musicOn && isPlaying ? '关闭音乐' : '打开音乐'}
+        className={`w-11 h-11 flex-shrink-0 rounded-full flex items-center justify-center touch-manipulation ${musicOn && isPlaying ? 'bg-white/15 text-[#f1ebe3]' : 'bg-white/5 text-[#8f857a]'}`}
+      >
+        {musicOn && isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+      </button>
+      <span className="flex-1 min-w-0 truncate text-[15px] text-[#bdb3a7]">{musicOn && isPlaying ? soundTitle : '音乐已关'}</span>
+      {canNext && musicOn && (
+        <button type="button" onClick={stop(onNext)} aria-label="下一首" className="w-11 h-11 flex-shrink-0 rounded-full flex items-center justify-center text-[#f1ebe3] bg-white/5 touch-manipulation">
+          <SkipForward size={20} fill="currentColor" />
+        </button>
+      )}
+    </div>
+  )
+
   const remaining = (
     <div>
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-base font-bold text-[#d9d0c4] truncate">{project ? `${project.icon} ${project.name}` : '未选择项目'}</span>
-        <span className="text-sm font-bold text-[#a0958a] flex-shrink-0">{status}</span>
+      <div className="text-base font-bold text-[#bdb3a7] truncate">
+        {project ? project.name : '未选择项目'} · {status}
       </div>
-      <div className="num leading-none mt-2 text-[min(18vw,96px)] landscape:text-[min(15vh,84px)]" style={{ color }}>
+      <div className="num leading-none mt-2 text-[min(18vw,96px)] landscape:text-[min(22vh,110px)]" style={{ color }}>
         {clock(display)}
       </div>
       <div className="h-1.5 rounded-full bg-white/10 mt-4 overflow-hidden">
         <div className="h-full rounded-full transition-[width] duration-1000" style={{ width: `${Math.min(1, progress) * 100}%`, backgroundColor: color }} />
       </div>
-      <p className="text-sm text-[#8f857a] truncate mt-3">{isPlaying ? `♪ ${soundTitle}` : '没有放音乐'}</p>
     </div>
   )
 
@@ -124,19 +162,10 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
             <div className="h-[88svh] aspect-square transition-transform duration-1000" style={{ transform: `translate(${shift.x}px, ${shift.y}px)` }}>
               <AnalogClock now={now} progress={progress} running={running} color={color} className="w-full h-full" />
             </div>
-            <div className="h-full flex flex-col justify-between min-w-0 max-w-[420px] py-2">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="text-base font-bold text-[#a0958a]">
-                    {now.getMonth() + 1}月{now.getDate()}日 {WEEK[now.getDay()]}
-                  </div>
-                  <div className="num text-[48px] leading-none mt-1">
-                    {pad(now.getHours())}:{pad(now.getMinutes())}
-                  </div>
-                </div>
-                {closeBtn}
-              </div>
+            <div className="h-full flex flex-col justify-center gap-8 min-w-0 max-w-[400px] py-4 relative">
+              <div className="absolute top-2 right-0">{closeBtn}</div>
               {remaining}
+              {musicRow}
               <div>{toggleBtn}</div>
             </div>
           </div>
@@ -155,6 +184,7 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
                 </div>
               </div>
               <div className="mt-12">{remaining}</div>
+              <div className="mt-6">{musicRow}</div>
             </div>
             <div className="flex justify-center">{toggleBtn}</div>
           </div>

@@ -314,6 +314,10 @@ export default function Timer({ preselectedProjectId, onNavigateToFeed }) {
           running={running}
           soundTitle={soundTitle}
           isPlaying={isPlaying}
+          musicOn={musicOn}
+          canNext={canNext}
+          onToggleMusic={toggleMusic}
+          onNext={next}
           onToggle={handleStartPause}
           onClose={() => setShowClock(false)}
           seconds={seconds}
