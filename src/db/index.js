@@ -1,8 +1,12 @@
 import { openDB } from 'idb'
 
 // 数据库名、版本与结构沿用线上版，升级后已有记录不受影响
-const dbPromise = openDB('forge-db', 1, {
+const dbPromise = openDB('forge-db', 2, {
   upgrade(db) {
+    // v2：本地导入的音乐（只存在本机，不上传）
+    if (!db.objectStoreNames.contains('music')) {
+      db.createObjectStore('music', { keyPath: 'id' })
+    }
     if (!db.objectStoreNames.contains('projects')) {
       db.createObjectStore('projects', { keyPath: 'id' })
     }
@@ -45,5 +49,14 @@ export const db = {
   },
   async deleteRecord(id) {
     return (await dbPromise).delete('records', id)
+  },
+  async getMusic() {
+    return (await (await dbPromise).getAll('music')).sort((a, b) => a.addedAt - b.addedAt)
+  },
+  async saveMusic(item) {
+    return (await dbPromise).put('music', item)
+  },
+  async deleteMusic(id) {
+    return (await dbPromise).delete('music', id)
   },
 }
