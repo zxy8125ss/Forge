@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Timer from './pages/Timer'
 import Feed from './pages/Feed'
 import Stats from './pages/Stats'
+import { requestPersist } from './lib/backup'
 
 export default function App() {
   const { init, loading } = useProjectStore()
@@ -16,6 +17,7 @@ export default function App() {
 
   useEffect(() => {
     init()
+    requestPersist()
   }, [init])
 
   const startTimerFor = (projectId) => {

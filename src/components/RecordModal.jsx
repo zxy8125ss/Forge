@@ -19,7 +19,7 @@ export default function RecordModal({ duration, project, onSave, onCancel, onAba
       id: uuid(),
       projectId: project.id,
       duration,
-      note: note.trim() || '默默精进，百炼成钢',
+      note: note.trim(),
       mood,
       startAt: Date.now() - duration * 1000,
       endAt: Date.now(),
@@ -35,13 +35,13 @@ export default function RecordModal({ duration, project, onSave, onCancel, onAba
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <label className="block">
-          <span className="block text-sm font-bold text-mute mb-2">这次做了什么</span>
+          <span className="block text-sm font-bold text-mute mb-2">记录一下 · 心得、日记都可以，之后在「记录」里还能改</span>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="一句话就好，比如：读完第三章"
-            rows={3}
-            maxLength={150}
+            placeholder="这次做了什么、想到了什么……"
+            rows={6}
+            maxLength={5000}
             className="w-full p-4 bg-white rounded-2xl text-base leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-ink placeholder:text-mute/60"
           />
         </label>

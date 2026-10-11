@@ -1,7 +1,7 @@
 const TABS = [
   { id: 'home', label: '今天' },
   { id: 'timer', label: '专注' },
-  { id: 'feed', label: '历程' },
+  { id: 'feed', label: '记录' },
   { id: 'stats', label: '印记' },
 ]
 
