@@ -45,20 +45,6 @@ export default function ClockScreen({ project, display, modeLabel, progress, run
     setShift({ x: Math.round((Math.random() - 0.5) * 16), y: Math.round((Math.random() - 0.5) * 16) })
   }, [minute])
 
-  // 打开时让系统状态栏也变深色，和页面连成一片；关闭后恢复浅色
-  useEffect(() => {
-    const meta = document.querySelector('meta[name="color-scheme"]')
-    const root = document.documentElement
-    meta?.setAttribute('content', 'dark')
-    root.style.colorScheme = 'dark'
-    document.body.style.backgroundColor = '#15110f'
-    return () => {
-      meta?.setAttribute('content', 'light')
-      root.style.colorScheme = ''
-      document.body.style.backgroundColor = ''
-    }
-  }, [])
-
   // 屏幕常亮
   useEffect(() => {
     let lock = null
